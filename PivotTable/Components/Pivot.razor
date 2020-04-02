@@ -1,0 +1,29 @@
+﻿@using Service;
+@inject PivotTableService pivotService;
+    <div>
+        <FieldList Zone=@Model.Zone.All />
+        <FieldList Zone=@Model.Zone.Row />
+
+    </div>
+@(Get())
+
+@code{
+        public MarkupString Get()
+        {
+            var dataImporter = new DataImporter();
+            var pivot = new PivotTableStruct(@pivotService.Fields.Where(x=>x.Zone == Model.Zone.Row).Select(x=>x.Name).ToArray(), dataImporter.GetDatas());
+            return pivot.ToHtml();
+        }
+
+        protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        pivotService.StateHasChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        pivotService.StateHasChanged -= StateHasChanged;
+    }
+
+}

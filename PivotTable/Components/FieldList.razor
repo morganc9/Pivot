@@ -1,0 +1,69 @@
+﻿@inject PivotTableService pivotTableService;
+@using Model;
+
+
+<div>Hello</div>
+
+<ul ondragover="event.preventDefault();" ondragstart="event.dataTransfer.setData('', event.target.id);" @ondrop="Ondrop" style="margin:20px">
+    
+      
+        @foreach (var field in pivotTableService.GetFields(Zone))
+        {
+
+            <li draggable="true" style="list-style-type:none; height:30px" @key="@field" tabindex="1"
+                   @ondrag="@(() => StartDrag(field))" @ondragenter="(e)=>OnDragEnter(field.Name,e)">
+            <span>@field.Name</span>
+</li>
+}
+
+    }
+</ul>
+
+@code{
+    [Parameter]
+    public Zone Zone { get; set; }
+
+    private void StartDrag(Model.Field field)
+    {
+
+        pivotTableService.ActiveItem = field;
+
+    }
+
+    string draggedOverName;
+
+    private void Ondrop()
+    {
+        //no active item - probably something was dragged is not a draggable 
+        if (pivotTableService.ActiveItem == null)
+            return;
+
+        pivotTableService.DropActiveItem(Zone);
+    }
+
+    private void OnDragEnter(string fieldName, DragEventArgs e)
+    {
+        //no active item - probably something was dragged is not a draggable 
+        if (pivotTableService.ActiveItem == null) return;
+
+        //if same item return
+        if (fieldName == pivotTableService.ActiveItem.Name) return;
+
+        draggedOverName = fieldName;
+
+        pivotTableService.Swap(draggedOverName);
+
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        pivotTableService.StateHasChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        pivotTableService.StateHasChanged -= StateHasChanged;
+    }
+
+}
